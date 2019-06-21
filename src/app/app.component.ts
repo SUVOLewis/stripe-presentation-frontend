@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { StripeService, Token } from 'ngx-stripe';
+import { StripeService, Token, HandleCardPaymentOptions } from 'ngx-stripe';
 import { PaymentService } from './services/payment.service';
+import { take } from 'rxjs/operators';
 
 @Component({
     selector: 'app-root',
@@ -17,7 +18,9 @@ export class AppComponent implements OnInit {
 
     planString = 'platinum';
 
-    completed = false;
+    subscriptionCompleted = false;
+    paymentIntentCompleted = false;
+    invoiceLink: string;
 
     constructor(private stripeService: StripeService, private paymentService: PaymentService) {
 
@@ -32,15 +35,31 @@ export class AppComponent implements OnInit {
                     const token: Token = result.token;
                     console.log(result.token);
                     this.paymentService.createStripeSubscription(this.customerName, token.id, this.planString, this.customerEmail)
-                        .then((res) => {
-                            this.completed = true;
+                        .then((res: any) => {
+                            this.invoiceLink = res.invoiceLink;
+                            this.subscriptionCompleted = true;
                         }).catch((err) => {
+                            console.log(err);
                             console.log('subscription failed!');
                         });
                 } else if (result.error) {
                     console.log(result.error.message);
                 }
             });
+    }
+
+    purchaseItem() {
+        this.paymentService.singlePurchase('July2019Report', 'lewiskos@hotmail.co.uk').then((response: any) => {
+            const secret: string = response.secret;
+            const defaultMethod: string = response.method;
+
+            const options: HandleCardPaymentOptions = { payment_method: defaultMethod };
+
+            this.stripeService.stripe.handleCardPayment(secret, options)
+                .pipe(take(1)).subscribe((result) => {
+                    this.paymentIntentCompleted = true;
+                });
+        });
     }
 
     ngOnInit() {

@@ -18,6 +18,8 @@
 <!-- Used to display Element errors. -->
 <div id="card-errors" role="alert"></div>
 
-<button (click)="startSubscription()">Submit Payment</button>
+<button (click)="startSubscription()">Subscribe to SUVOBI</button>
+<button (click)="purchaseItem()">Purchase report with customer id</button>
 
-<p *ngIf="completed">Subscription Successfully created!</p>
+<p *ngIf="subscriptionCompleted">Subscription Successfully created! <a [href]="invoiceLink" target="_blank">View invoice</a></p>
+<p *ngIf="paymentIntentCompleted">Report purchased!</p>
